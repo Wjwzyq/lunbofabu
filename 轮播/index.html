@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		  <style type="text/css">
+		    
+			* {margin:0; padding:0; }
+li{list-style:none; }
+.pic{width: 850px;height: 500px;margin: 50px auto;border: 1px solid #ccc;padding: 7px;position: relative;}
+#div1 {width:850px; height:500px;  overflow:hidden; position:relative;}
+#div1 ul {width: 5100px;height:500px;position: absolute;left: 0;top: 0;}
+#div1 ul li {width:850px; height:500px;  overflow:hidden; float: left;}
+#div1 ol {position:absolute;right: 10%;bottom: 10px;z-index:6}
+#div1 ol li{width: 20px;height: 20px;background: #fff;margin-left: 5px;float: left;line-height: 20px;text-align: center;cursor: pointer;}
+#div1 ol li.ac{background: red;color: #fff;}
+#div1>a{text-decoration: none;position: absolute;top: 50%;margin-top: -10px;height: 40px;line-height: 32px;text-align: center;width: 40px;font-size: 40px;vertical-align: middle;color: #fff;background: rgba(0,0,0,0.5);z-index:6;}
+#goleft{left: 0;}
+#goright{right: 0;}
+img{width:850px; height:500px;}
+        </style>
+	<body>
+		<div class="pic">
+			<div id="div1">
+				<ul>
+    				<li><a href="javascript:alert(0);"><img src="1.jpg" /></a></li>
+    				<li><a href="javascript:alert(1);"><img src="2.jpg" /></a></li>
+    				<li><a href="javascript:alert(2);"><img src="3.jpg" /></a></li>
+    				<li><a href="javascript:alert(3);"><img src="4.jpg" /></a></li>
+    				<li><a href="javascript:alert(4);"><img src="0.jpg" /></a></li>
+   				</ul>
+  				<ol>
+    			
+    			</ol>
+    			<a href="javascript:;" id="goleft">&laquo;</a>
+    			<a href="javascript:;" id="goright">&raquo;</a>
+			</div>
+		</div>
+		
+		<script>
+			class Nani {
+				constructor(selector){
+					this.pic = document.querySelector(selector);//传参定义
+					this.div = this.pic.querySelector("#div1");
+					this.ul = this.div.querySelector("ul");
+					this.imgs = this.div.querySelectorAll("img")
+					this.imgWidth = this.div.offsetWidth;
+					this.ol = this.div.querySelector("ol");
+					this.goleft = this.div.querySelector("#goleft");
+					this.goright = this.div.querySelector("#goright");
+					this.n = 0;
+					
+					
+					
+					this.render();
+					
+					this.li = Array.from(this.ol.querySelectorAll("li"));//将li变为数组，进行遍历找到所有li
+					this.bindEvents();
+				}
+				
+				render() {
+					for(var i=0; i<this.imgs.length; i++){
+						var li = document.createElement("li");// 创建li元素
+           				li.innerHTML = i + 1;// 给li里面添加文字  1 2 3 4 5
+            			this.ol.appendChild(li);//将li 加入到ol里
+            			li.setAttribute("index", i);//设置属性为index 值为i
+					}
+					this.ol.children[0].className = "ac";//使得ol中第一个li的clas="ac"
+					
+					
+  					this.ul.appendChild(this.ul.children[0].cloneNode(true));//克隆一个ul中第一个li,加入到ul中的最后
+				}
+				bindEvents() {	
+					//给所有li按钮绑事件，利用指针函数遍历，
+					this.li.forEach(li => {
+						li.onclick = () => {
+							this.changeBtn(li);	
+						}
+					})					
+					//给点击goleft绑事件
+					this.goleft.onclick = () => {
+						this.clickLeft();
+					}
+					//给点击goright绑事件
+					this.goright.onclick = () => {
+						this.clickRight();
+					}
+					//给鼠标进入绑事件
+					this.pic.onmouseover = () => {
+						this.over();
+					}
+					
+					//给鼠标移除绑事件
+					this.pic.onmouseout = () => {
+						this.out();
+					}
+				}
+				
+				//自动播放
+				timeId= setInterval(this.clickRight.bind(this),2000);
+				
+				//鼠标进入
+				over() {
+					let timeId = this.timeId;
+					clearInterval(timeId);
+				}
+				
+				//鼠标移出
+				out() {
+					this.timeId= setInterval(this.clickRight.bind(this),2000);//利用bind（this）使得this指出
+				}
+				
+				//li按钮变换
+				changeBtn(li) {
+					//将所有li的class移除，再将点击的li添加上class="ac"
+					this.li.forEach(li => {
+						li.removeAttribute("class");
+					})
+					li.className = "ac";
+				//获取鼠标进入的li的当前索引值
+      				this.n = li.getAttribute("index");
+      				this.changeImg(this.ul, -this.n * this.imgWidth);
+				}
+				
+				//goleft按钮变换
+				clickLeft() {
+					//如果为第一张，继续点left跳转第5张
+					if (this.n == 0) {
+      					this.n = 5;
+      					this.ul.style.left = -this.n * this.imgWidth + "px";
+    				}
+    				this.n--;
+    				this.changeImg(this.ul, -this.n * this.imgWidth);
+    				//设置小按钮的颜色---所有的小按钮干掉颜色
+    				for (var i = 0; i < this.ol.children.length; i++) {
+      					this.ol.children[i].removeAttribute("class");
+    				}
+    				//当前的pic索引对应的按钮设置颜色
+    				this.ol.children[this.n].className = "ac";
+				}
+				
+				//goright按钮变换
+				clickRight() {
+					//如果当前n的值是5，则变为0，显示第六张图，则把它显示为克隆出来的第一张图
+					if(this.n == this.imgs.length-1){
+						this.n = 0;
+						//把ul的位置还原成开始的默认位置
+						this.ul.style.left = 0 + "px";
+					}
+					this.n++;
+					this.changeImg(this.ul, -this.n * this.imgWidth);
+					//如果n==5说明,此时显示第6个图(内容是第一张图片),第一个小按钮有颜色,
+    				if (this.n == this.li.length) {
+      					//第五个按钮颜色干掉
+      					this.ol.children[this.ol.children.length - 1].className = "";
+      					//第一个按钮颜色设置上
+      					this.ol.children[0].className = "ac";
+    				} else {
+      					//干掉所有的小按钮的背景颜色
+      					this.li.forEach(li => {
+							li.removeAttribute("class");
+						})
+      					this.ol.children[this.n].className = "ac";
+      				}
+					
+				}
+				
+				
+				
+				//图片变换
+				changeImg(element, target){
+					clearInterval(element.timeId);
+   					 //定时器的id值存储到对象的一个属性
+    				element.timeId = setInterval(function () {
+      				//获取元素的当前的位置,数字类型
+      				var current = element.offsetLeft;
+      				//每次移动的距离
+      				var step = 10;
+      				step = current < target ? step : -step;
+      				//当前移动到位置
+      					current += step;
+      					if (Math.abs(current - target) > Math.abs(step)) {
+        					element.style.left = current + "px";
+      					} else {
+        					//清理定时器
+        					clearInterval(element.timeId);
+        					//直接到达目标
+        					element.style.left = target + "px";
+      					}
+    				}, 10);
+				}
+
+			}
+			new Nani(".pic");
+		</script>
+	</body>
+</html>
